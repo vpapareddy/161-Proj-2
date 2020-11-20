@@ -160,36 +160,17 @@ func DecryptData(key []byte, ciphertext []byte) (bytes []byte, err error) {
 
 func FetchFUID(userdata User, filename string) (FUID []byte, err error) {
 	fileText := "file: " + filename
-	// FetchAndVerify(UUIDtoBytes(userdata.UUID), fileText, )
-	// FetchAndVerify(locKey []byte, loc string, username string) (data []byte, err error) {
 	possibleFUID, possibleFUIDErr := FetchFromDS(UUIDtoBytes(userdata.UUID), fileText)
 	if possibleFUIDErr != nil { return nil, possibleFUIDErr }
 	macErr := VerifyMac(UUIDtoBytes(userdata.UUID), fileText, possibleFUID)
 	if macErr != nil { return nil, macErr }
 	_, isFUID := FetchFromDS(possibleFUID, "file data")
 
-	// fileLocDS, _ := userlib.HashKDF(UUIDtoBytes(userdata.UUID)[:16], []byte(fileText))
-	// if fileLocDS == nil { return nil, errors.New(strings.ToTitle("Line 161")) }
-	// fuidEnc, fileExists := userlib.DatastoreGet(BytesToUUID(fileLocDS))
-	// if !fileExists { return nil, errors.New(strings.ToTitle("Line 162")) }
-	// possibleFUID, err := DecryptData(UUIDtoBytes(userdata.UUID)[:16], fuidEnc) // check
-	// if err != nil { return nil, err }
-	// checkFUID, _ := userlib.HashKDF(possibleFUID[:16], []byte("file data"))
-	// if checkFUID == nil { return nil, errors.New(strings.ToTitle("Line 167")) }
-	// _, isFUID := userlib.DatastoreGet(BytesToUUID(checkFUID))
 	if isFUID == nil {
 		FUID = possibleFUID
 	} else {
-		// encKeyUUID, _ := userlib.HashKDF(StringToKey(userdata.Username), []byte("uuid"))
-
-		// sharedHandle, err2 := DecryptData(StringToKey(userdata.Username), fuidEnc)
-		// if err2 != nil { return nil, err2 }
 		sharedHandle := possibleFUID
 		FUID, _ = FetchFromDS(sharedHandle, "file")
-		// realFuidDS, _ := userlib.HashKDF(sharedHandle[:16], []byte("file"))
-		// fuidEnc, _ = userlib.DatastoreGet(BytesToUUID(realFuidDS))
-		// if fuidEnc == nil { return nil, errors.New(strings.ToTitle("Line 176")) }
-		// FUID, err = DecryptData(StringToKey(userdata.Username), fuidEnc)
 	}
 	if FUID == nil { return nil, errors.New(strings.ToTitle("Error fetching FUID")) }
 	return FUID, nil
